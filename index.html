@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>浮生修炼簿</title>
+<meta name="app-version" content="github-fixed-20260903">
 <style>
 :root{
   --bg:#0a0e1a;
@@ -26,7 +27,7 @@ body{
 }
 .bg-layer{
   position:fixed;inset:0;z-index:-3;
-  background-image:url("qingyun-1.png");
+  background-image:url("./qingyun-1.png");
   background-size:cover;background-position:center;
   transition:1.5s cubic-bezier(.4,0,.2,1);
   filter:saturate(.9) brightness(.85);
@@ -241,7 +242,7 @@ input::placeholder{color:rgba(255,255,255,.3);}
 <div class="cloud-layer"></div>
 
 <!-- 老爷爷立绘 -->
-<img src="oldman-0.png" alt="云游子" id="oldmanImg" class="oldman-portrait" onerror="this.style.display='none'" onclick="oldManSpeakRandom()">
+<img src="./oldman-0.png" alt="云游子" id="oldmanImg" class="oldman-portrait" onerror="this.style.display='none'" onclick="oldManSpeakRandom()">
 
 <!-- 开场 -->
 <div class="prologue-overlay" id="prologueOverlay">
@@ -284,7 +285,7 @@ input::placeholder{color:rgba(255,255,255,.3);}
   <div class="panel">
     <h2>☯ 修士档案</h2>
     <div style="display:flex;align-items:center;gap:15px;margin-bottom:12px;">
-      <img src="cultivator-0.png" alt="修士" id="cultivatorImg" class="cultivator-portrait" onerror="this.style.display='none'">
+      <img src="./cultivator-0.png" alt="修士" id="cultivatorImg" class="cultivator-portrait" onerror="this.style.display='none'">
       <div>
         <p style="font-size:16px;color:var(--gold-light);letter-spacing:2px;" id="daoNameTop">无名散修</p>
         <p style="font-size:10px;color:var(--muted);" id="daoRealmTop">凡体</p>
@@ -465,11 +466,11 @@ input::placeholder{color:rgba(255,255,255,.3);}
 <script>
 // ============ 完整逻辑 ============
 const SECTS = [
-  { name:'青云宗', desc:'剑道圣地', avatar:'🌿', attrBonus:{悟性:10,自律:5}, bgs:['qingyun-1.png','qingyun-2.png','qingyun-3.png'] },
-  { name:'落霞谷', desc:'自由修行', avatar:'🌅', attrBonus:{心境:10}, bgs:['luoxia-1.png','luoxia-2.png','luoxia-3.png'] },
-  { name:'百花谷', desc:'丹道药理', avatar:'🌸', attrBonus:{创造:10}, bgs:['baihua-1.png','baihua-2.png','baihua-3.png'] },
-  { name:'太虚观', desc:'悟道星辰', avatar:'🔮', attrBonus:{悟性:15}, bgs:['taixu-1.png','taixu-2.png','taixu-3.png'] },
-  { name:'寒冰阁', desc:'坚韧意志', avatar:'❄️', attrBonus:{自律:10}, bgs:['hanbing-1.png','hanbing-2.png','hanbing-3.png'] }
+  { name:'青云宗', desc:'剑道圣地', avatar:'🌿', attrBonus:{悟性:10,自律:5}, bgs:['./qingyun-1.png','./qingyun-2.png','./qingyun-3.png'] },
+  { name:'落霞谷', desc:'自由修行', avatar:'🌅', attrBonus:{心境:10}, bgs:['./luoxia-1.png','./luoxia-2.png','./luoxia-3.png'] },
+  { name:'百花谷', desc:'丹道药理', avatar:'🌸', attrBonus:{创造:10}, bgs:['./baihua-1.png','./baihua-2.png','./baihua-3.png'] },
+  { name:'太虚观', desc:'悟道星辰', avatar:'🔮', attrBonus:{悟性:15}, bgs:['./taixu-1.png','./taixu-2.png','./taixu-3.png'] },
+  { name:'寒冰阁', desc:'坚韧意志', avatar:'❄️', attrBonus:{自律:10}, bgs:['./hanbin-1.png','./hanbin-2.png','./hanbin-3.png'] }
 ];
 const RANK_CONFIG = {
   fan:{label:'凡阶',thresholds:[1,5,12,25,40,50],className:'fan'},
@@ -920,12 +921,12 @@ function updatePortraits(){
   const ci=document.getElementById('cultivatorImg');
   if(ci)ci.src=`cultivator-${level}.png`;
   const oi=document.getElementById('oldmanImg');
-  if(oi)oi.src=`oldman-${getIntimacyLevel()}.png`;
+  if(oi)oi.src=`./oldman-${getIntimacyLevel()}.png`;
 }
-function updateOldmanPortrait(){const oi=document.getElementById('oldmanImg');if(oi)oi.src=`oldman-${getIntimacyLevel()}.png`;}
+function updateOldmanPortrait(){const oi=document.getElementById('oldmanImg');if(oi)oi.src=`./oldman-${getIntimacyLevel()}.png`;}
 
 // ============ 渲染 ============
-function renderGongfa(){const box=document.getElementById('gongfaContainer');if(!box)return;box.innerHTML='';if(player.gongfa.length===0){box.innerHTML='<div style="text-align:center;color:var(--muted);padding:25px;font-size:12px;">洞府空无一物，创建功法开始修炼吧。</div>';return}const mainDao=getMainDaoPath();player.gongfa.forEach((g,i)=>{const rn=REALM_NAMES[getRealmIndex(g)];const prog=getProgress(g);const bd=getEfficiencyBreakdown(g);const gDao=detectDaoPath(g);const daoDisplay=gDao?`${gDao}${gDao===mainDao?'（主修）':''}`:'未知道';const isThisTiming=isTiming&&timingGongfaIndex===i;const d=document.createElement('div');d.className=`gongfa-item ${g.rank}`;d.innerHTML=`<img src="gongfa-default.png" class="gongfa-thumb" onerror="this.style.display='none'"><h3>📖 ${g.name}<span class="rank-tag ${g.rank}">${g.rankLabel}</span>${isThisTiming?'<span style="color:#7ac8a8;font-size:10px;margin-left:5px;">⏳ 修炼中</span>':''}</h3><div class="info">道途：${daoDisplay} ｜ ${g.category} ｜ ${rn} ｜ ${g.time.toFixed(2)}h</div><div class="info" style="color:${bd.daoTi>1?'var(--gold-light)':bd.dao<1?'var(--danger)':'var(--muted)'};">效率 ×${bd.total.toFixed(2)}</div><div class="progress-bar"><div class="progress-fill ${g.rank}" style="width:${prog}%"></div></div><div class="actions"><button onclick="selectGongfa(${i})">${isThisTiming?'修炼中':'选择'}</button><button onclick="deleteGongfa(${i})" style="color:var(--danger);">删除</button></div>`;box.appendChild(d)})}
+function renderGongfa(){const box=document.getElementById('gongfaContainer');if(!box)return;box.innerHTML='';if(player.gongfa.length===0){box.innerHTML='<div style="text-align:center;color:var(--muted);padding:25px;font-size:12px;">洞府空无一物，创建功法开始修炼吧。</div>';return}const mainDao=getMainDaoPath();player.gongfa.forEach((g,i)=>{const rn=REALM_NAMES[getRealmIndex(g)];const prog=getProgress(g);const bd=getEfficiencyBreakdown(g);const gDao=detectDaoPath(g);const daoDisplay=gDao?`${gDao}${gDao===mainDao?'（主修）':''}`:'未知道';const isThisTiming=isTiming&&timingGongfaIndex===i;const d=document.createElement('div');d.className=`gongfa-item ${g.rank}`;d.innerHTML=`<img src="./gongfa-default.png" class="gongfa-thumb" onerror="this.style.display='none'"><h3>📖 ${g.name}<span class="rank-tag ${g.rank}">${g.rankLabel}</span>${isThisTiming?'<span style="color:#7ac8a8;font-size:10px;margin-left:5px;">⏳ 修炼中</span>':''}</h3><div class="info">道途：${daoDisplay} ｜ ${g.category} ｜ ${rn} ｜ ${g.time.toFixed(2)}h</div><div class="info" style="color:${bd.daoTi>1?'var(--gold-light)':bd.dao<1?'var(--danger)':'var(--muted)'};">效率 ×${bd.total.toFixed(2)}</div><div class="progress-bar"><div class="progress-fill ${g.rank}" style="width:${prog}%"></div></div><div class="actions"><button onclick="selectGongfa(${i})">${isThisTiming?'修炼中':'选择'}</button><button onclick="deleteGongfa(${i})" style="color:var(--danger);">删除</button></div>`;box.appendChild(d)})}
 function selectGongfa(i){currentIndex=i;document.getElementById('currentGongfa').textContent=player.gongfa[i].name;alert(`已选择功法：《${player.gongfa[i].name}》\n点击「▶ 开始」即可修炼`)}
 function deleteGongfa(i){if(!confirm('确定删除？'))return;if(isTiming&&timingGongfaIndex===i){alert('该功法正在修炼中，请先结束修炼');return}player.gongfa.splice(i,1);if(currentIndex===i)currentIndex=null;if(currentIndex>i)currentIndex--;if(currentIndex===null)document.getElementById('currentGongfa').textContent='无';saveData();renderGongfa();renderLibrary();renderHome()}
 function renderLibrary(){const box=document.getElementById('libraryList');if(!box)return;box.innerHTML='';if(player.gongfa.length===0){box.innerHTML='<div style="text-align:center;color:var(--muted);padding:25px;">暂无功法</div>';return}player.gongfa.forEach(g=>{const d=document.createElement('div');d.className=`gongfa-item ${g.rank}`;d.innerHTML=`<h3>📖 ${g.name}<span class="rank-tag ${g.rank}">${g.rankLabel}</span></h3><div class="info">${detectDaoPath(g)||'未知'} ｜ ${g.category} ｜ ${REALM_NAMES[getRealmIndex(g)]} ｜ ${g.time.toFixed(2)}h</div>`;box.appendChild(d)})}
