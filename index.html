@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>浮生修炼簿</title>
+<style>
+:root{
+  --bg:#0a0e1a;
+  --gold:#d4af37;
+  --gold-light:#f5e6b8;
+  --gold-dim:rgba(212,175,55,.35);
+  --text:#f0ead8;
+  --muted:rgba(230,220,200,.55);
+  --glass:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.12);
+  --card-shadow:0 20px 60px rgba(0,0,0,.45);
+  --danger:#e08a8a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  min-height:100vh;
+  font-family:"Noto Serif SC","Songti SC","PingFang SC",serif;
+  color:var(--text);background:var(--bg);overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+.bg-layer{
+  position:fixed;inset:0;z-index:-3;
+  background-image:url("qingyun-1.png");
+  background-size:cover;background-position:center;
+  transition:1.5s cubic-bezier(.4,0,.2,1);
+  filter:saturate(.9) brightness(.85);
+}
+.bg-layer::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(5,8,15,.35) 0%,rgba(5,8,15,.65) 50%,rgba(5,8,15,.92) 100%);
+}
+.bg-vignette{
+  position:fixed;inset:0;z-index:-2;
+  background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.5) 100%);
+  pointer-events:none;
+}
+.cloud-layer{
+  position:fixed;inset:0;z-index:-1;
+  background:radial-gradient(circle at 20% 30%,rgba(255,255,255,.08),transparent 25%),radial-gradient(circle at 80% 70%,rgba(255,255,255,.05),transparent 30%);
+  animation:cloudMove 25s ease-in-out infinite alternate;pointer-events:none;
+}
+@keyframes cloudMove{from{transform:translateX(-2%)}to{transform:translateX(2%)}}
+.page{display:none;padding:20px 16px 60px;min-height:100vh;position:relative;z-index:1;}
+.page.active{display:block;animation:fadeIn 1s cubic-bezier(.4,0,.2,1);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
+.hero{text-align:center;padding-top:20px;position:relative;}
+.hero::after{content:'';display:block;width:80px;height:1px;margin:18px auto 0;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.hero-small{font-size:10px;letter-spacing:8px;opacity:.4;font-family:Arial,sans-serif;text-transform:uppercase;}
+.hero h1{font-size:clamp(34px,5.5vw,65px);font-weight:400;letter-spacing:14px;margin:14px 0 6px;color:var(--gold);text-shadow:0 0 50px rgba(212,175,55,.35),0 2px 15px rgba(0,0,0,.5);font-family:'STKaiti','KaiTi','楷体',serif;}
+.hero p{font-size:13px;letter-spacing:4px;color:var(--muted);}
+.ancient-time{text-align:center;font-size:11px;letter-spacing:3px;color:var(--gold-light);opacity:.6;margin-top:6px;font-family:'STKaiti','KaiTi','楷体',serif;}
+.panel{
+  max-width:800px;margin:14px auto;padding:22px;
+  background:var(--glass);border:1px solid var(--border);border-radius:20px;
+  backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);
+  box-shadow:var(--card-shadow);transition:.4s;position:relative;overflow:hidden;
+}
+.panel::before{content:'';position:absolute;top:0;left:25px;right:25px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);}
+.panel:hover{box-shadow:0 25px 70px rgba(0,0,0,.55),0 0 30px rgba(212,175,55,.06);border-color:rgba(212,175,55,.25);}
+.panel h2{font-weight:400;letter-spacing:4px;margin-bottom:14px;font-size:17px;color:var(--gold-light);font-family:'STKaiti','KaiTi','楷体',serif;}
+.panel .info-row{display:flex;flex-wrap:wrap;gap:8px 18px;line-height:2;font-size:12px;letter-spacing:1.5px;color:var(--muted);}
+.panel .info-row span{color:var(--gold-light);font-weight:600;}
+button{
+  padding:9px 20px;border-radius:20px;border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.07);color:var(--text);cursor:pointer;transition:.35s;
+  font-family:inherit;font-size:12px;letter-spacing:2px;backdrop-filter:blur(5px);
+}
+button:hover{background:linear-gradient(135deg,var(--gold),#b8952f);color:#0a0e1a;border-color:var(--gold);box-shadow:0 4px 20px rgba(212,175,55,.3);transform:translateY(-1px);}
+button:active{transform:translateY(0) scale(.97);}
+button.danger{color:var(--danger);border-color:rgba(224,138,138,.4);}
+button.danger:hover{background:rgba(224,138,138,.2);color:var(--danger);border-color:var(--danger);}
+button.ghost{background:transparent;border-color:rgba(255,255,255,.15);color:var(--muted);}
+input,select{
+  padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.15);
+  background:rgba(0,0,0,.35);color:var(--text);font-size:13px;outline:none;
+  font-family:inherit;letter-spacing:1px;transition:.3s;
+}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 15px rgba(212,175,55,.15);}
+input::placeholder{color:rgba(255,255,255,.3);}
+.sect-container{max-width:1000px;margin:28px auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;padding:0 10px;}
+.sect-card{
+  min-height:200px;padding:20px;border-radius:18px;background:var(--glass);
+  border:1px solid var(--border);backdrop-filter:blur(20px);cursor:pointer;
+  display:flex;flex-direction:column;justify-content:flex-end;transition:.5s;
+  position:relative;overflow:hidden;
+}
+.sect-card::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.4) 100%);pointer-events:none;}
+.sect-card:hover{transform:translateY(-8px);border-color:var(--gold);box-shadow:0 18px 45px rgba(0,0,0,.5),0 0 25px rgba(212,175,55,.15);}
+.sect-card h2{font-size:21px;font-weight:400;letter-spacing:3px;position:relative;z-index:1;}
+.sect-card p{margin-top:6px;color:var(--gold-light);line-height:1.7;font-size:11px;opacity:.75;position:relative;z-index:1;}
+.gongfa-item{
+  background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:16px;
+  padding:16px;margin-bottom:10px;position:relative;transition:.35s;
+}
+.gongfa-item:hover{border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.06);}
+.gongfa-item.fan{border-left:3px solid #a0a0a0;}
+.gongfa-item.ren{border-left:3px solid #8ab8e8;}
+.gongfa-item.ling{border-left:3px solid #6ac8d8;}
+.gongfa-item.di{border-left:3px solid #c89ad8;}
+.gongfa-item.tian{border-left:3px solid #e8c860;}
+.gongfa-item.xian{border-left:3px solid #f0f0f0;}
+.gongfa-item.shen{border-left:3px solid #ff88cc;}
+.gongfa-item h3{font-size:16px;font-weight:400;letter-spacing:2px;margin-bottom:6px;}
+.gongfa-item .info{font-size:10.5px;color:var(--muted);line-height:1.7;letter-spacing:1px;}
+.gongfa-item .actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+.rank-tag{display:inline-block;padding:2px 10px;border-radius:14px;font-size:10px;letter-spacing:2px;margin-left:6px;}
+.rank-tag.fan{background:rgba(160,160,160,.15);color:#a0a0a0;border:1px solid #a0a0a0;}
+.rank-tag.ren{background:rgba(138,184,232,.15);color:#8ab8e8;border:1px solid #8ab8e8;}
+.rank-tag.ling{background:rgba(106,200,216,.15);color:#6ac8d8;border:1px solid #6ac8d8;}
+.rank-tag.di{background:rgba(200,154,216,.15);color:#c89ad8;border:1px solid #c89ad8;}
+.rank-tag.tian{background:rgba(232,200,96,.15);color:#e8c860;border:1px solid #e8c860;}
+.rank-tag.xian{background:rgba(240,240,240,.15);color:#f0f0f0;border:1px solid #f0f0f0;}
+.rank-tag.shen{background:rgba(255,136,204,.15);color:#ff88cc;border:1px solid #ff88cc;}
+.progress-bar{height:5px;background:rgba(255,255,255,.08);border-radius:3px;margin:6px 0;overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;transition:.6s;}
+.progress-fill.fan{background:linear-gradient(90deg,#808080,#b0b0b0);}
+.progress-fill.ren{background:linear-gradient(90deg,#6ab0e8,#8ac8f0);}
+.progress-fill.ling{background:linear-gradient(90deg,#50b8c8,#80d8e0);}
+.progress-fill.di{background:linear-gradient(90deg,#c080d8,#d8a8e8);}
+.progress-fill.tian{background:linear-gradient(90deg,#d8b840,#f0d878);}
+.progress-fill.xian{background:linear-gradient(90deg,#e0e0e0,#ffffff);}
+.progress-fill.shen{background:linear-gradient(90deg,#ff80cc,#ffc0e0);}
+.achievement-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px;}
+.achievement-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center;transition:.4s;}
+.achievement-card.unlocked{border-color:var(--gold-dim);box-shadow:0 0 15px rgba(212,175,55,.15);background:rgba(212,175,55,.05);}
+.achievement-card.locked{opacity:.35;filter:grayscale(.7);}
+.achievement-icon{font-size:26px;display:block;margin-bottom:5px;}
+.achievement-name{font-size:11px;letter-spacing:1.5px;font-weight:bold;}
+.achievement-desc{font-size:9px;color:var(--muted);margin-top:4px;line-height:1.4;}
+.talent-overlay,.daoti-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:900;overflow-y:auto;padding:30px 20px;
+}
+.talent-overlay.active,.daoti-overlay.active{display:flex;}
+.talent-box,.daoti-box{
+  max-width:480px;width:100%;background:rgba(18,22,38,.96);
+  border:1px solid rgba(212,175,55,.3);border-radius:22px;padding:26px;
+  box-shadow:0 0 70px rgba(212,175,55,.15),0 30px 60px rgba(0,0,0,.5);
+}
+.talent-box h2,.daoti-box h3{text-align:center;color:var(--gold-light);letter-spacing:5px;font-weight:400;margin-bottom:14px;font-size:20px;font-family:'STKaiti','KaiTi','楷体',serif;}
+.talent-option{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px;}
+.talent-option button{padding:8px 14px;border-radius:16px;font-size:11px;}
+.daoti-options{display:flex;flex-direction:column;gap:8px;}
+.daoti-options button{padding:12px 16px;border-radius:12px;font-size:12px;text-align:left;line-height:1.5;letter-spacing:1px;}
+.heart-demon-modal{
+  position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);
+  display:none;align-items:center;justify-content:center;z-index:950;
+}
+.heart-demon-modal.active{display:flex;}
+.hd-box{
+  max-width:380px;width:88%;background:linear-gradient(160deg,#1c1c30,#2d1a3e);
+  border:1px solid rgba(212,175,55,.35);border-radius:18px;padding:24px 20px;
+  text-align:center;box-shadow:0 0 50px rgba(212,175,55,.2),0 20px 50px rgba(0,0,0,.5);
+}
+.hd-icon{font-size:45px;margin-bottom:8px;}
+.hd-title{color:var(--gold);letter-spacing:3px;font-weight:400;margin-bottom:10px;font-size:15px;font-family:'STKaiti','KaiTi','楷体',serif;}
+.hd-text{color:rgba(240,234,216,.8);font-size:12.5px;line-height:2;letter-spacing:1px;font-family:'STKaiti','KaiTi','楷体',serif;}
+.hd-sub{color:rgba(255,255,255,.35);font-size:9px;margin-top:8px;letter-spacing:2px;}
+.hd-actions{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
+.phone-modal{
+  position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);
+  display:none;align-items:center;justify-content:center;z-index:960;
+}
+.phone-modal.active{display:flex;}
+.phone-box{
+  max-width:360px;width:88%;background:rgba(18,22,38,.97);
+  border:1px solid rgba(212,175,55,.3);border-radius:18px;padding:22px;
+  text-align:center;box-shadow:0 0 50px rgba(212,175,55,.15);
+}
+.phone-box h3{color:var(--gold-light);font-size:16px;font-weight:400;letter-spacing:3px;margin-bottom:12px;font-family:'STKaiti','KaiTi','楷体',serif;}
+.phone-box p{color:var(--muted);font-size:11px;line-height:1.8;letter-spacing:1px;margin-bottom:14px;}
+.phone-stats{display:flex;gap:10px;justify-content:center;margin:12px 0;flex-wrap:wrap;}
+.phone-stat{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;padding:10px 14px;min-width:80px;}
+.phone-stat .val{font-size:20px;color:var(--gold);font-weight:bold;}
+.phone-stat .lbl{font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:1px;}
+.prologue-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;background:#000;
+  display:none;flex-direction:column;align-items:center;justify-content:center;z-index:2000;
+}
+.prologue-overlay.active{display:flex;}
+.prologue-box{
+  max-width:360px;width:88%;text-align:center;padding:26px;
+  background:linear-gradient(160deg,#0a0a14,#1a1a2e);border:1px solid rgba(212,175,55,.25);
+  border-radius:18px;min-height:200px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;
+}
+.prologue-icon{font-size:50px;animation:prologueFloat 3s ease-in-out infinite;}
+@keyframes prologueFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.prologue-text{font-family:'STKaiti','KaiTi','楷体',serif;font-size:13px;color:rgba(240,234,216,.8);line-height:2;letter-spacing:1.5px;min-height:80px;display:flex;align-items:center;}
+.nav-bar{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:14px auto;max-width:800px;}
+.nav-bar button{padding:7px 16px;font-size:11px;border-radius:18px;letter-spacing:1.5px;}
+.nav-bar button.active{background:linear-gradient(135deg,var(--gold),#b8952f);color:#0a0e1a;border-color:var(--gold);box-shadow:0 4px 15px rgba(212,175,55,.25);}
+.notice-board{
+  background:rgba(20,18,10,.65);border:1px solid rgba(212,175,55,.25);
+  border-left:3px solid var(--gold);border-radius:8px;padding:12px 16px;
+  margin:10px auto;max-width:800px;position:relative;letter-spacing:1.5px;backdrop-filter:blur(10px);
+}
+.notice-board::before{content:'修炼告示';position:absolute;top:-9px;left:10px;background:var(--bg);padding:0 7px;font-size:9px;color:var(--gold);letter-spacing:3px;}
+.notice-text{font-size:12px;color:rgba(240,234,216,.7);line-height:1.7;text-align:center;font-family:'STKaiti','KaiTi','楷体',serif;}
+.lock-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;background:#000;
+  display:none;flex-direction:column;align-items:center;justify-content:center;z-index:1000;
+}
+.lock-overlay.active{display:flex;}
+.lock-overlay h2{font-size:32px;letter-spacing:6px;color:#fff;margin-bottom:6px;font-weight:400;font-family:'STKaiti','KaiTi','楷体',serif;}
+.lock-overlay .lock-sub{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:3px;margin-bottom:10px;}
+.lock-overlay .lock-timer{font-size:60px;font-weight:300;letter-spacing:8px;color:var(--gold);margin:18px 0;text-shadow:0 0 50px rgba(212,175,55,.5);font-family:Arial,sans-serif;}
+.lock-overlay .lock-verse{font-size:12px;color:rgba(255,255,255,.5);letter-spacing:2px;max-width:350px;text-align:center;line-height:1.9;margin-bottom:18px;font-family:'STKaiti','KaiTi','楷体',serif;}
+.oldman-portrait{
+  width:80px;height:80px;border-radius:50%;object-fit:cover;
+  border:2px solid var(--gold);box-shadow:0 0 20px rgba(212,175,55,.4);
+  position:fixed;bottom:20px;right:20px;z-index:100;cursor:pointer;
+}
+.cultivator-portrait{
+  width:100px;height:140px;object-fit:cover;border-radius:12px;
+  border:1px solid rgba(212,175,55,.3);box-shadow:0 0 15px rgba(212,175,55,.2);
+}
+.gongfa-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;float:left;margin-right:8px;}
+@media(max-width:600px){
+  .sect-container{grid-template-columns:repeat(2,1fr);}
+  .sect-card{min-height:150px;}
+  #clock{font-size:34px;}
+  .lock-overlay .lock-timer{font-size:40px;}
+  .hero h1{letter-spacing:8px;}
+  .oldman-portrait{width:60px;height:60px;}
+  .cultivator-portrait{width:80px;height:110px;}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-layer" id="bgLayer"></div>
+<div class="bg-vignette"></div>
+<div class="cloud-layer"></div>
+
+<!-- 老爷爷立绘 -->
+<img src="oldman-0.png" alt="云游子" id="oldmanImg" class="oldman-portrait" onerror="this.style.display='none'" onclick="oldManSpeakRandom()">
+
+<!-- 开场 -->
+<div class="prologue-overlay" id="prologueOverlay">
+  <div class="prologue-box">
+    <div class="prologue-icon">📿</div>
+    <div class="prologue-text" id="prologueText"></div>
+    <button id="prologueBtn" onclick="nextPrologue()" style="display:none;">继续</button>
+  </div>
+</div>
+
+<!-- 宗门选择 -->
+<section id="sectPage" class="page active">
+  <div class="hero">
+    <div class="hero-small">CULTIVATION JOURNAL</div>
+    <h1>浮生修炼簿</h1>
+    <p>人生皆可成法 · 万般皆可修行</p>
+    <div class="ancient-time" id="ancientTimeSect"></div>
+  </div>
+  <div class="notice-board"><div class="notice-text" id="noticeTextSect"></div></div>
+  <h2 style="text-align:center;margin-top:16px;letter-spacing:6px;font-weight:400;color:var(--gold-light);font-size:17px;font-family:'STKaiti','KaiTi','楷体',serif;">选择你的道途</h2>
+  <div class="sect-container" id="sectContainer"></div>
+</section>
+
+<!-- 主页 -->
+<section id="homePage" class="page">
+  <div class="hero">
+    <div class="hero-small">INNER WORLD</div>
+    <h1 style="font-size:clamp(28px,4vw,42px);">修士洞府</h1>
+    <p id="sectTitle">未入宗门</p>
+    <div class="ancient-time" id="ancientTimeHome"></div>
+  </div>
+  <div class="notice-board"><div class="notice-text" id="noticeTextHome"></div></div>
+  <div class="nav-bar">
+    <button class="active" onclick="switchTab('homePage',this)">总览</button>
+    <button onclick="switchTab('libraryPage',this)">藏经阁</button>
+    <button onclick="switchTab('achievementPage',this)">成就</button>
+    <button onclick="openPhoneModal()">📱 手机记录</button>
+  </div>
+
+  <div class="panel">
+    <h2>☯ 修士档案</h2>
+    <div style="display:flex;align-items:center;gap:15px;margin-bottom:12px;">
+      <img src="cultivator-0.png" alt="修士" id="cultivatorImg" class="cultivator-portrait" onerror="this.style.display='none'">
+      <div>
+        <p style="font-size:16px;color:var(--gold-light);letter-spacing:2px;" id="daoNameTop">无名散修</p>
+        <p style="font-size:10px;color:var(--muted);" id="daoRealmTop">凡体</p>
+      </div>
+    </div>
+    <div class="info-row">
+      <p>道号：<span id="daoName">无名散修</span></p>
+      <p>宗门：<span id="daoSect">---</span></p>
+      <p>道体：<span id="daoBody">未测定</span></p>
+      <p>灵根：<span id="daoRoot">未评定</span></p>
+      <p>境界：<span id="daoRealm">凡体</span></p>
+      <p>主修道：<span id="mainDaoDisplay">未定</span></p>
+      <p>道行：<span id="totalHour">0</span> 小时</p>
+      <p>效率：<span id="efficiencyDisplay">100%</span></p>
+      <p>亲密度：<span id="intimacyDisplay">初识</span></p>
+    </div>
+    <p style="font-size:10.5px;color:var(--muted);letter-spacing:1px;margin-top:8px;" id="realmProgress"></p>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <input type="text" id="newDaoName" placeholder="输入新道号" style="flex:1;min-width:120px;">
+      <button onclick="changeDaoName()">赐名</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center;">
+      <button onclick="startDaoTiTest()">🧬 道体测定</button>
+      <button onclick="showTalentSelect()">📜 灵根评定</button>
+      <button onclick="reselectSect()" class="ghost">🔄 换宗门</button>
+      <button onclick="resetAllData()" class="danger">⚠️ 重置</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>🔥 当前闭关</h2>
+    <p style="text-align:center;font-size:13px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;">当前功法：<span id="currentGongfa" style="color:var(--gold-light);">无</span></p>
+    <div id="clock" style="font-size:44px;letter-spacing:6px;text-align:center;margin:10px 0;color:var(--gold);font-family:Arial,sans-serif;">00:00:00</div>
+    <p style="text-align:center;font-size:10px;color:var(--muted);letter-spacing:1px;" id="timingStatus">未开始</p>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:center;">
+      <button onclick="startCultivation()" id="btnStart">▶ 开始</button>
+      <button onclick="stopCultivation()" id="btnStop" style="display:none;">⏹ 结束</button>
+      <button onclick="enterLockMode()" style="background:rgba(212,160,23,.15);border-color:rgba(212,160,23,.4);">🔒 锁屏</button>
+      <button onclick="changeBg()" class="ghost">🖼 换景</button>
+      <button onclick="toggleAutoBg()" class="ghost">🔄 自动</button>
+      <button onclick="oldManSpeakRandom()" style="background:rgba(168,148,240,.15);border-color:rgba(168,148,240,.4);">🧙 老爷爷</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>📖 功法录</h2>
+    <div id="gongfaContainer"></div>
+    <div style="text-align:center;margin-top:10px;">
+      <button onclick="showCreateForm()">＋ 创建新功法</button>
+    </div>
+    <div id="createForm" style="display:none;margin-top:14px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        <input type="text" id="newGongfaName" placeholder="功法名称" style="flex:1;min-width:110px;">
+        <input type="text" id="newGongfaCategory" placeholder="类别" style="flex:1;min-width:100px;">
+        <select id="newGongfaRank">
+          <option value="fan">凡阶</option>
+          <option value="ren">人阶</option>
+          <option value="ling">灵阶</option>
+          <option value="di">地阶</option>
+          <option value="tian">天阶</option>
+          <option value="xian">仙阶</option>
+          <option value="shen">神阶</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button onclick="createGongfa()">确认</button>
+        <button onclick="hideCreateForm()" class="ghost">取消</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 藏经阁 -->
+<section id="libraryPage" class="page">
+  <div class="hero">
+    <div class="hero-small">LIBRARY</div>
+    <h1 style="font-size:clamp(28px,4vw,42px);">浮生藏经阁</h1>
+    <p>万卷皆为道，道在日常中</p>
+  </div>
+  <div class="nav-bar">
+    <button onclick="switchTab('homePage',this)">总览</button>
+    <button class="active" onclick="switchTab('libraryPage',this)">藏经阁</button>
+    <button onclick="switchTab('achievementPage',this)">成就</button>
+  </div>
+  <div class="panel"><h2>📚 已收藏功法</h2><div id="libraryList"></div></div>
+</section>
+
+<!-- 成就 -->
+<section id="achievementPage" class="page">
+  <div class="hero">
+    <div class="hero-small">ACHIEVEMENTS</div>
+    <h1 style="font-size:clamp(28px,4vw,42px);">阶段性成就</h1>
+    <p>道途漫漫，步步生莲</p>
+  </div>
+  <div class="nav-bar">
+    <button onclick="switchTab('homePage',this)">总览</button>
+    <button onclick="switchTab('libraryPage',this)">藏经阁</button>
+    <button class="active" onclick="switchTab('achievementPage',this)">成就</button>
+  </div>
+  <div class="panel"><h2>🏆 已获成就</h2><div class="achievement-grid" id="achievementGrid"></div></div>
+</section>
+
+<!-- 锁屏 -->
+<div class="lock-overlay" id="lockOverlay">
+  <h2 id="lockName">功法名</h2>
+  <div class="lock-sub" id="lockRank">人阶 · 未入门</div>
+  <div class="lock-timer" id="lockTimer">00:00:00</div>
+  <div class="lock-verse" id="lockVerse"></div>
+  <button onclick="exitLockMode()">出 关</button>
+</div>
+
+<!-- 道体弹窗 -->
+<div class="daoti-overlay" id="daotiOverlay">
+  <div class="daoti-box">
+    <h3 id="daotiQuestionTitle">心相篇 · 道体测定</h3>
+    <p id="daotiQuestionText" style="text-align:center;color:var(--muted);font-size:12px;line-height:1.8;margin-bottom:14px;"></p>
+    <div class="daoti-options" id="daotiOptions"></div>
+    <div id="daotiResultBox" style="display:none;text-align:center;margin-top:14px;"></div>
+    <div class="btn-group" id="daotiActionBtns" style="display:none;justify-content:center;margin-top:14px;">
+      <button onclick="confirmDaoTi()">确认道体</button>
+    </div>
+  </div>
+</div>
+
+<!-- 灵根弹窗 -->
+<div class="talent-overlay" id="talentOverlay">
+  <div class="talent-box">
+    <h2>📜 灵根评定</h2>
+    <p style="text-align:center;color:var(--muted);font-size:11px;margin-bottom:14px;">选择你的最高成就</p>
+    <div class="talent-option" id="rootOptions">
+      <button onclick="selectRoot('tian')">天灵根·985</button>
+      <button onclick="selectRoot('dan')">单灵根·211</button>
+      <button onclick="selectRoot('shuang')">双灵根·一本</button>
+      <button onclick="selectRoot('san')">三灵根·二本</button>
+      <button onclick="selectRoot('si')">四灵根·专科</button>
+      <button onclick="selectRoot('wu')">五灵根·高中</button>
+    </div>
+    <div id="talentResult" style="display:none;text-align:center;margin:12px 0;padding:12px;background:rgba(255,255,255,.04);border-radius:12px;">
+      <div id="resultRoot" style="font-size:22px;color:var(--gold);letter-spacing:3px;margin-bottom:4px;"></div>
+      <div id="resultEval" style="font-size:11px;color:var(--muted);line-height:1.6;"></div>
+    </div>
+    <div class="btn-group" style="justify-content:center;gap:10px;">
+      <button onclick="confirmTalent()" id="confirmTalentBtn" style="display:none;">确认</button>
+      <button onclick="closeTalent()" class="ghost">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 心魔/老爷爷弹窗 -->
+<div class="heart-demon-modal" id="heartDemonModal">
+  <div class="hd-box">
+    <div class="hd-icon" id="hdIcon">🧙</div>
+    <div class="hd-title" id="hdTitle">云游子</div>
+    <div class="hd-text" id="hdText"></div>
+    <div class="hd-sub">—— 玉佩中的老爷爷 ——</div>
+    <div class="hd-actions">
+      <button onclick="acceptHeartDemon()">受教了</button>
+      <button onclick="resistHeartDemon()">斩却心魔</button>
+    </div>
+  </div>
+</div>
+
+<!-- 手机记录 -->
+<div class="phone-modal" id="phoneModal">
+  <div class="phone-box">
+    <h3>📱 手机使用记录</h3>
+    <p>如实记录今日手机使用，老夫来判断是否入魔。</p>
+    <input type="number" id="phoneInput" placeholder="输入今日手机使用分钟数" style="width:100%;text-align:center;font-size:16px;padding:12px;">
+    <div class="phone-stats" id="phoneStats"></div>
+    <div id="phoneAdvice" style="font-size:11px;color:var(--muted);line-height:1.7;margin-top:10px;font-family:'STKaiti','KaiTi','楷体',serif;"></div>
+    <div class="btn-group" style="justify-content:center;gap:10px;margin-top:14px;">
+      <button onclick="submitPhoneTime()">如实上报</button>
+      <button onclick="closePhoneModal()" class="ghost">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ 完整逻辑 ============
+const SECTS = [
+  { name:'青云宗', desc:'剑道圣地', avatar:'🌿', attrBonus:{悟性:10,自律:5}, bgs:['qingyun-1.png','qingyun-2.png','qingyun-3.png'] },
+  { name:'落霞谷', desc:'自由修行', avatar:'🌅', attrBonus:{心境:10}, bgs:['luoxia-1.png','luoxia-2.png','luoxia-3.png'] },
+  { name:'百花谷', desc:'丹道药理', avatar:'🌸', attrBonus:{创造:10}, bgs:['baihua-1.png','baihua-2.png','baihua-3.png'] },
+  { name:'太虚观', desc:'悟道星辰', avatar:'🔮', attrBonus:{悟性:15}, bgs:['taixu-1.png','taixu-2.png','taixu-3.png'] },
+  { name:'寒冰阁', desc:'坚韧意志', avatar:'❄️', attrBonus:{自律:10}, bgs:['hanbing-1.png','hanbing-2.png','hanbing-3.png'] }
+];
+const RANK_CONFIG = {
+  fan:{label:'凡阶',thresholds:[1,5,12,25,40,50],className:'fan'},
+  ren:{label:'人阶',thresholds:[2,10,25,50,80,100],className:'ren'},
+  ling:{label:'灵阶',thresholds:[4,20,50,100,160,200],className:'ling'},
+  di:{label:'地阶',thresholds:[8,40,100,200,320,400],className:'di'},
+  tian:{label:'天阶',thresholds:[16,80,200,400,640,800],className:'tian'},
+  xian:{label:'仙阶',thresholds:[30,150,375,750,1200,1500],className:'xian'},
+  shen:{label:'神阶',thresholds:[60,300,750,1500,2400,3000],className:'shen'}
+};
+const REALM_NAMES = ['未入门','初窥门径','略有所悟','小成','融会贯通','登峰造极','返璞归真'];
+const DAO_PATHS = {
+  '武道':{keywords:['健身','瑜伽','跑步','武术','游泳','运动','拉伸','体能','力量','搏击'],bonus:1.3},
+  '文道':{keywords:['阅读','写作','英语','日语','法语','编程','学习','考试','语文','背单词'],bonus:1.3},
+  '艺道':{keywords:['绘画','音乐','设计','摄影','舞蹈','艺术','创作','表演','弹琴','唱歌'],bonus:1.3},
+  '禅道':{keywords:['冥想','打坐','早睡','早起','呼吸','静坐','正念','修行','养生','站桩'],bonus:1.3},
+  '术道':{keywords:['数学','物理','化学','科研','算法','逻辑','科学','实验','编程','数据分析'],bonus:1.3},
+  '商道':{keywords:['金融','投资','管理','演讲','谈判','经济','商业','市场','销售','运营'],bonus:1.3}
+};
+const ROOT_CONFIG = {
+  tian:{label:'天灵根',bonus:1.5},dan:{label:'单灵根',bonus:1.3},
+  shuang:{label:'双灵根',bonus:1.1},san:{label:'三灵根',bonus:1.0},
+  si:{label:'四灵根',bonus:0.9},wu:{label:'五灵根',bonus:0.8}
+};
+const DAO_TI_DEFINITIONS = {
+  '精金体':{desc:'如精金，理性锋利',strength:'执行力',weakness:'缺情感',advice:'软一点',best:['编程','数学','金融','管理','科研'],bonus:1.3},
+  '青木体':{desc:'如春木，温和坚韧',strength:'学习力',weakness:'犹豫',advice:'先动手',best:['语言','教育','心理','写作','医学'],bonus:1.3},
+  '玄水体':{desc:'如玄水，内敛深邃',strength:'洞察力',weakness:'过度思考',advice:'做一遍',best:['哲学','心理','策略','研究'],bonus:1.3},
+  '离火体':{desc:'如离火，热情明亮',strength:'感染力',weakness:'三分钟热度',advice:'找到热爱',best:['艺术','表演','营销','设计'],bonus:1.3},
+  '厚土体':{desc:'如厚土，踏实可靠',strength:'持久力',weakness:'保守',advice:'接纳变化',best:['管理','工程','健康','农业'],bonus:1.3},
+  '雷灵体':{desc:'如惊雷，一鸣惊人',strength:'危机处理',weakness:'平时松懈',advice:'日常也滋养',best:['竞技','危机处理','创业'],bonus:1.4},
+  '风灵体':{desc:'如风，自由不羁',strength:'适应力',weakness:'难深耕',advice:'选一事停留',best:['旅行','摄影','外交','新闻'],bonus:1.3},
+  '冰灵体':{desc:'如寒冰，冷静极致',strength:'专注力',weakness:'情感隔离',advice:'感受温度',best:['外科','精密制造','审计'],bonus:1.4},
+  '血灵体':{desc:'如战旗，逆境翻盘',strength:'心理韧性',weakness:'逼太紧',advice:'张弛有度',best:['极限运动','创业','竞技'],bonus:1.4},
+  '骨灵体':{desc:'如龙骨，结构感强',strength:'系统思维',weakness:'依赖框架',advice:'拥抱混乱',best:['架构','建筑','编程','规划'],bonus:1.3},
+  '影灵体':{desc:'如影，洞察幽微',strength:'洞察共情',weakness:'不敢上前',advice:'走出来',best:['心理','调查','文学','历史'],bonus:1.3},
+  '光灵体':{desc:'如光，天生领袖',strength:'领导力',weakness:'背太多',advice:'照亮自己',best:['管理','政治','品牌','公关'],bonus:1.4},
+  '毒灵体':{desc:'如毒，破旧立新',strength:'创新力',weakness:'树敌多',advice:'建设性颠覆',best:['创新','科技','设计','先锋'],bonus:1.3},
+  '星辰体':{desc:'如星，志向远大',strength:'战略眼光',weakness:'脱离现实',advice:'脚踏实地',best:['航天','物理','金融','战略'],bonus:1.4},
+  '轮回体':{desc:'如轮，洞悉因果',strength:'洞察定力',weakness:'行动慢',advice:'你在因果中',best:['哲学','历史','宗教','文学'],bonus:1.3},
+  '纯阳体':{desc:'如烈日，能量充沛',strength:'执行力',weakness:'冲动',advice:'等一等',best:['军事','体育','创业','工程'],bonus:1.5},
+  '纯阴体':{desc:'如月，沉静神秘',strength:'思考力',weakness:'行动不足',advice:'允许不完美',best:['文学','艺术','研究','冥想'],bonus:1.5},
+  '阴阳体':{desc:'如太极，平衡通透',strength:'平衡力',weakness:'缺立场',advice:'关键时刻取舍',best:['调解','外交','教育','心理'],bonus:1.4},
+  '五行体':{desc:'如五行，面面俱到',strength:'全面均衡',weakness:'无尖点',advice:'一专多能',best:['通识','咨询','管理'],bonus:1.2},
+  '混沌体':{desc:'如混沌，包容万象',strength:'包容性',weakness:'易迷失',advice:'开天辟地',best:['跨界','探索','哲学','创新'],bonus:1.3},
+  '太虚体':{desc:'如太虚，超然物外',strength:'抽象思维',weakness:'脱离现实',advice:'下来走走',best:['数学','理论物理','哲学'],bonus:1.5},
+  '无极体':{desc:'如无极，深不可测',strength:'潜力无穷',weakness:'前期慢',advice:'继续走',best:['投资','科研','养生'],bonus:1.4},
+  '命运体':{desc:'如命运，直觉敏锐',strength:'直觉极强',weakness:'忽数据',advice:'事实检验',best:['投资','战略','心理'],bonus:1.4},
+  '剑心体':{desc:'如剑心，纯粹至极',strength:'专注极强',weakness:'不擅人际',advice:'学点烟火',best:['修炼','科研','竞技','哲学'],bonus:1.5},
+  '烛照体':{desc:'如烛光，温暖治愈',strength:'共情极强',weakness:'耗能大',advice:'留光给自己',best:['心理','医疗','教育','护理'],bonus:1.4},
+  '磐石体':{desc:'如磐石，坚定不移',strength:'原则极强',weakness:'过于固执',advice:'允许种子进来',best:['军警','审判','宗教','管理'],bonus:1.4}
+};
+const DAO_TI_QUESTIONS = [
+  {q:'深夜独处时，你感到——',options:[
+    {text:'平静享受',scores:{阴:3,水:2,土:1}},{text:'空虚想找人',scores:{阳:3,火:2,金:1}},
+    {text:'整理思绪',scores:{金:3,阴:2,土:1}},{text:'思绪万千',scores:{木:3,阳:2,火:1}},{text:'无所谓',scores:{水:3,土:2}}]},
+  {q:'陌生领域第一反应——',options:[
+    {text:'找资料建框架',scores:{金:3,木:2,阴:1}},{text:'直接上手',scores:{火:3,阳:2,木:1}},
+    {text:'找人请教',scores:{水:3,土:2,阳:1}},{text:'观察再动',scores:{土:3,阴:2,水:1}},{text:'兴奋沉浸',scores:{火:3,木:2,阳:1}}]},
+  {q:'遇到挫折你倾向——',options:[
+    {text:'分析制定计划',scores:{金:3,木:2,阳:1}},{text:'冷静再想',scores:{水:3,阴:2,土:1}},
+    {text:'找朋友倾诉',scores:{火:3,水:2,阳:1}},{text:'闷头死磕',scores:{土:3,金:2,阳:1}},{text:'暂时放下',scores:{木:3,水:2,阴:1}}]},
+  {q:'做事驱动力——',options:[
+    {text:'证明自己',scores:{火:3,金:2,阳:1}},{text:'变强大',scores:{金:3,木:2,阳:1}},
+    {text:'本身快乐',scores:{木:3,火:2,阴:1}},{text:'不让失望',scores:{土:3,水:2,阴:1}},{text:'冥冥中该做',scores:{水:3,土:2,阴:1}}]},
+  {q:'人群中你的角色——',options:[
+    {text:'倾听观察',scores:{水:3,阴:2,土:1}},{text:'活跃气氛',scores:{火:3,阳:2,木:1}},
+    {text:'给建议方向',scores:{金:3,阳:2,木:1}},{text:'维持秩序',scores:{土:3,水:2,阴:1}},{text:'安静角落',scores:{木:3,阴:2,水:1}}]},
+  {q:'对未来态度——',options:[
+    {text:'清晰规划',scores:{金:3,土:2,阳:1}},{text:'充满期待',scores:{火:3,木:2,阳:1}},
+    {text:'顺其自然',scores:{水:3,土:2,阴:1}},{text:'脚踏实地',scores:{土:3,金:2,阴:1}},{text:'有方向不设限',scores:{木:3,水:2,阴:1}}]},
+  {q:'最大心魔——',options:[
+    {text:'懒惰',scores:{土:3,水:2,阴:1}},{text:'焦虑',scores:{木:3,阴:2,水:1}},
+    {text:'自我怀疑',scores:{水:3,阴:2,土:1}},{text:'冲动',scores:{火:3,阳:2,木:1}},{text:'固执',scores:{金:3,阳:2,土:1}}]},
+  {q:'朋友倾诉你——',options:[
+    {text:'听完再想办法',scores:{水:3,金:2,阴:1}},{text:'直接给方案',scores:{金:3,火:2,阳:1}},
+    {text:'先安抚情绪',scores:{木:3,水:2,阴:1}},{text:'感同身受激动',scores:{火:3,木:2,阳:1}},{text:'陪着不用多说',scores:{土:3,阴:2,水:1}}]},
+  {q:'喜欢什么修炼环境——',options:[
+    {text:'安静独处',scores:{阴:3,水:2,木:1}},{text:'热闹一起',scores:{阳:3,火:2,木:1}},
+    {text:'固定规律',scores:{土:3,金:2,阴:1}},{text:'随心所欲',scores:{火:3,水:2,阳:1}},{text:'找师父同修',scores:{木:3,土:2,阴:1}}]},
+  {q:'回顾去年最大感受——',options:[
+    {text:'成长了很多',scores:{木:3,土:2,阴:1}},{text:'充实',scores:{火:3,阳:2,金:1}},
+    {text:'有些迷茫',scores:{水:3,阴:2,木:1}},{text:'完成目标',scores:{金:3,土:2,阳:1}},{text:'平静',scores:{土:3,阴:2,水:1}}]},
+  {q:'最想得到的天赋——',options:[
+    {text:'过目不忘',scores:{木:3,金:2,阳:1}},{text:'处变不惊',scores:{水:3,阴:2,土:1}},
+    {text:'感染力',scores:{火:3,阳:2,水:1}},{text:'执行力',scores:{金:3,土:2,阳:1}},{text:'知足常乐',scores:{土:3,阴:2,木:1}}]},
+  {q:'理想道途——',options:[
+    {text:'突破最强',scores:{火:3,金:2,阳:1}},{text:'隐居山林',scores:{阴:3,水:2,木:1}},
+    {text:'传道授业',scores:{木:3,土:2,阴:1}},{text:'走遍天下',scores:{阳:3,水:2,火:1}},{text:'守护一方',scores:{土:3,阴:2,金:1}}]}
+];
+const XIUSHI_REALMS = [
+  {name:'凡体',level:0,check:()=>true,desc:'未入道途'},
+  {name:'炼气一层',level:1,check:()=>countGongfaByRealm(1)>=1,desc:'初感气机'},
+  {name:'炼气二层',level:2,check:()=>countGongfaByRealm(1)>=2,desc:'气行周天'},
+  {name:'炼气三层',level:3,check:()=>countGongfaByRealm(1)>=3,desc:'气机充盈'},
+  {name:'炼气四层',level:4,check:()=>countGongfaByRealm(2)>=1,desc:'丹田稳固'},
+  {name:'炼气五层',level:5,check:()=>countGongfaByRealm(2)>=2,desc:'五气朝元'},
+  {name:'炼气六层',level:6,check:()=>countGongfaByRealm(2)>=3,desc:'神气合一'},
+  {name:'炼气七层',level:7,check:()=>countGongfaByRealm(3)>=1,desc:'气凝为液'},
+  {name:'炼气八层',level:8,check:()=>countGongfaByRealm(3)>=2,desc:'液化转固'},
+  {name:'炼气九层',level:9,check:()=>countGongfaByRealm(3)>=3,desc:'圆满无缺'},
+  {name:'筑基初期',level:10,check:()=>countGongfaByRealm(2)>=3&&player.totalTime>=100,desc:'脱胎换骨'},
+  {name:'筑基中期',level:11,check:()=>countGongfaByRealm(2)>=4&&player.totalTime>=200,desc:'根基渐厚'},
+  {name:'筑基后期',level:12,check:()=>countGongfaByRealm(2)>=5&&player.totalTime>=300,desc:'筑成道基'},
+  {name:'筑基小圆满',level:13,check:()=>countGongfaByRealm(3)>=1&&player.totalTime>=400,desc:'道基圆满'},
+  {name:'筑基大圆满',level:14,check:()=>countGongfaByRealm(3)>=2&&player.totalTime>=500,desc:'只待结丹'},
+  {name:'金丹初期',level:15,check:()=>countGongfaByRealm(3)>=3&&player.totalTime>=700,desc:'金丹初成'},
+  {name:'金丹中期',level:16,check:()=>countGongfaByRealm(3)>=4&&player.totalTime>=900,desc:'金丹稳固'},
+  {name:'金丹后期',level:17,check:()=>countGongfaByRealm(3)>=5&&player.totalTime>=1100,desc:'金丹圆满'},
+  {name:'金丹小圆满',level:18,check:()=>countGongfaByRealm(4)>=1&&player.totalTime>=1300,desc:'金丹无瑕'},
+  {name:'金丹大圆满',level:19,check:()=>countGongfaByRealm(4)>=2&&player.totalTime>=1500,desc:'只待破婴'},
+  {name:'元婴初期',level:20,check:()=>countGongfaByRealm(4)>=3&&player.totalTime>=2000,desc:'元婴初成'},
+  {name:'元婴中期',level:21,check:()=>countGongfaByRealm(4)>=4&&player.totalTime>=2500,desc:'元婴稳固'},
+  {name:'元婴后期',level:22,check:()=>countGongfaByRealm(4)>=5&&player.totalTime>=3000,desc:'元婴圆满'},
+  {name:'元婴小圆满',level:23,check:()=>countGongfaByRealm(4)>=6&&player.totalTime>=4000,desc:'元婴无瑕'},
+  {name:'元婴大圆满',level:24,check:()=>countGongfaByRealm(4)>=7&&player.totalTime>=5000,desc:'只待化神'},
+  {name:'化神初期',level:25,check:()=>countGongfaByRealm(4)>=8&&player.totalTime>=6000,desc:'化神初成'},
+  {name:'化神中期',level:26,check:()=>countGongfaByRealm(4)>=9&&player.totalTime>=8000,desc:'化神稳固'},
+  {name:'化神后期',level:27,check:()=>countGongfaByRealm(4)>=10&&player.totalTime>=10000,desc:'化神圆满'},
+  {name:'化神小圆满',level:28,check:()=>countGongfaByRealm(4)>=10&&player.totalTime>=15000,desc:'化神无瑕'},
+  {name:'化神大圆满',level:29,check:()=>countGongfaByRealm(4)>=10&&player.totalTime>=20000,desc:'此界巅峰'}
+];
+const ACHIEVEMENTS = [
+  {id:'first-gongfa',name:'初入道途',desc:'创建第一门功法',icon:'📜'},
+  {id:'first-hour',name:'一刻之功',desc:'累计修炼1小时',icon:'⏱️'},
+  {id:'ten-hours',name:'十时之约',desc:'累计修炼10小时',icon:'🔥'},
+  {id:'fifty-hours',name:'五十时关',desc:'累计修炼50小时',icon:'⚡'},
+  {id:'hundred-hours',name:'百日筑基',desc:'累计修炼100小时',icon:'🏔️'},
+  {id:'five-hundred',name:'五百时劫',desc:'累计修炼500小时',icon:'🌊'},
+  {id:'thousand-hours',name:'千时大道',desc:'累计修炼1000小时',icon:'🌌'},
+  {id:'first-realm',name:'初窥门径',desc:'任意功法入门',icon:'🌱'},
+  {id:'second-realm',name:'略有小成',desc:'任意功法小成',icon:'🌿'},
+  {id:'third-realm',name:'融会贯通',desc:'任意功法精通',icon:'🌸'},
+  {id:'mastery',name:'登峰造极',desc:'任意功法登峰',icon:'🌟'},
+  {id:'transcend',name:'返璞归真',desc:'任意功法归真',icon:'✨'},
+  {id:'three-gongfa',name:'兼修三门',desc:'同时修炼3门',icon:'📚'},
+  {id:'five-gongfa',name:'五法通神',desc:'同时修炼5门',icon:'📖'},
+  {id:'ten-gongfa',name:'万法归一',desc:'同时修炼10门',icon:'🗡️'},
+  {id:'first-ling',name:'灵阶入手',desc:'创建灵阶以上功法',icon:'💠'},
+  {id:'first-tian',name:'天阶缘法',desc:'创建天阶以上功法',icon:'🌟'},
+  {id:'first-xian',name:'仙阶传人',desc:'创建仙阶以上功法',icon:'👑'},
+  {id:'unyielding',name:'不屈',desc:'中断后当日再启',icon:'🕊️'},
+  {id:'daoTi-tested',name:'心相已定',desc:'完成道体测定',icon:'🧬'},
+  {id:'root-tested',name:'灵根已明',desc:'完成灵根评定',icon:'📜'},
+  {id:'first-sect',name:'拜入仙门',desc:'选择宗门',icon:'🏛️'},
+  {id:'realm-lianqi',name:'炼气修士',desc:'达到炼气期',icon:'💨'},
+  {id:'realm-zhuji',name:'筑基道人',desc:'达到筑基期',icon:'🧱'},
+  {id:'realm-jindan',name:'金丹真人',desc:'达到金丹期',icon:'🔮'},
+  {id:'realm-yuanying',name:'元婴老祖',desc:'达到元婴期',icon:'👁️'},
+  {id:'realm-huashen',name:'化神大能',desc:'达到化神期',icon:'🌠'},
+  {id:'phone-first',name:'如实上报',desc:'首次记录手机',icon:'📱'},
+  {id:'phone-good',name:'自律仙童',desc:'手机使用<2小时',icon:'🎯'},
+  {id:'phone-bad',name:'散神入魔',desc:'手机使用>6小时',icon:'👿'},
+  {id:'phone-seven',name:'七日清明',desc:'连续7天记录',icon:'📅'},
+  {id:'oldman-friend',name:'忘年之交',desc:'亲密度至亲',icon:'🤝'},
+  {id:'cut-heart-demon',name:'斩却心魔',desc:'抵抗心魔1次',icon:'⚔️'},
+  {id:'cut-ten-demons',name:'斩魔十次',desc:'抵抗心魔10次',icon:'🗡️'},
+  {id:'early-bird',name:'闻鸡起舞',desc:'早上5-7点修炼',icon:'🌅'},
+  {id:'night-owl',name:'夜修狂人',desc:'深夜修炼',icon:'🌙'},
+  {id:'thrifty',name:'克己修心',desc:'手机<修炼时间',icon:'⚖️'},
+  {id:'cross-dao',name:'跨道修行',desc:'修炼非主修道功法',icon:'🌉'},
+  {id:'three-dao',name:'三道同修',desc:'修习3个道途',icon:'🔱'},
+  {id:'five-dao',name:'五道贯通',desc:'修习5个道途',icon:'🌈'}
+];
+const XIU_LIAN_GAO_SHI = [
+  '修行不易，且行且珍惜。','大道三千，皆可成仙。','天资不足，勤能补之。勤亦不足，道心补之。',
+  '这世间从无捷径可走，唯有脚踏实地。','修士一生，如逆水行舟，不进则退。',
+  '天命难违，但人心可逆。','大道至简，唯勤不破。','天地为炉，造化为工。你若不炼自己，天来炼你。',
+  '大道五十，天衍四九，人遁其一。','别人练一遍，你练十遍。总有一日，你能追上。'
+];
+const CROSS_DAO_QUOTES = {
+  0:['……不熟悉的路，慢慢走。','……新道，新始。','……嗯，换路了。'],
+  1:['换了个方向？无妨，走一段看看。','新路是难，但哪条路开始时不难？','既然选了，就试着走走。'],
+  2:['这不是你本来的道，但谁说修士只能走一条路？','跨道修行，开头最难。老夫当年也走过弯路。','别急，新道途就像新交的朋友，总要先熟悉。'],
+  3:['老夫看得出，你在走一条不熟悉的路。很好，修士就该有这份胆量。','不是你的主修道也没关系。天下大道，殊途同归。','你这孩子，敢碰自己不会的东西，比大多数人强多了。'],
+  4:['我的小友，你又在学新东西了。老夫像你这么大的时候，可没这个胆子。','跨道而行，如履薄冰。但你每一步都踩得很稳。','不熟，才要修。若什么都熟，还修什么道？']
+};
+const OLD_MAN_BY_INTIMACY = {
+  0:{'日常':['……','嗯。','……来了。','（沉默）','哦。'],'深夜':['……还不睡？'],'刷手机':['……少看些。'],'中断回归':['……回来了。'],'过度':['……歇会。'],'天气晴':['……天气不错。'],'天气冷':['……穿厚点。'],'天气热':['……多喝水。'],'斩却':['……不错。'],'失守':['……无妨。'],'手机好':['……还行。'],'手机坏':['……多了。']},
+  1:{'日常':['今日如何？','吃了吗？','嗯，来了。','不错，继续。'],'深夜':['夜深了，早些歇。'],'刷手机':['那东西……别太沉迷。'],'中断回归':['回来就好。'],'过度':['别太累。'],'天气晴':['天不错，出去走走。'],'天气冷':['天冷，加衣。'],'天气热':['暑气重，多喝水。'],'斩却':['可以。'],'失守':['下次注意。'],'手机好':['今天控制得不错。'],'手机坏':['今天看多了。']},
+  2:{'日常':['小子，今日气色不错。','昨日修炼可曾落下？','来，跟老夫说说今日如何。','你最近稳了不少。'],'深夜':['还不睡？明日还要修炼。'],'刷手机':['又看那些？散神雾。'],'中断回归':['回来了？老夫还担心。'],'过度':['停一停。你当自己是铁打的？'],'天气晴':['日头好，出去沾沾地气。'],'天气冷':['天凉了，泡杯热的。'],'天气热':['暑气伤神，别硬撑。'],'斩却':['好小子，有几分老夫的意思。'],'失守':['无妨。心魔挑你累的时候来。'],'手机好':['不错，今日没被那东西吸走。'],'手机坏':['今日看得多了些。']},
+  3:{'日常':['你这孩子，昨日又熬夜了？','来，老夫今日想起一段往事。','你最近是不是有心事？','你比前些日子沉得住气了。'],'深夜':['子时了。非要把自己熬干吗？'],'刷手机':['看完了，心里是实了还是空了？'],'中断回归':['回来了？老夫想入梦去找你。'],'过度':['你疯了？老夫当年就是太拼。'],'天气晴':['今日天色真好。'],'天气冷':['天冷，先去暖暖。'],'天气热':['心静自然凉。'],'斩却':['漂亮！这一剑斩得好。'],'失守':['没关系。老夫陪你明日再战。'],'手机好':['今日不错，没让那东西偷了时间。'],'手机坏':['你又陷进去了。']},
+  4:{'日常':['我的小友，今日可好？','来，先坐下。老夫想看看你。','你很不错。','你越来越有修士的样子了。','对自己好一点。'],'深夜':['夜深了。睡吧，老夫守着你。'],'刷手机':['放下吧，明日老夫陪你面对。'],'中断回归':['你终于回来了。老夫把玉佩擦了一遍又一遍。'],'过度':['小友，停下。不必用这种方式证明。'],'天气晴':['这样好的天，准你少修一刻。'],'天气冷':['老夫没法给你披衣裳，只能提醒你。'],'天气热':['老夫当年有一道冰心诀。'],'斩却':['好！我云游子的传人！'],'失守':['不打紧。你已走了多远。'],'手机好':['今日你把时间花在了刀刃上。老夫欣慰。'],'手机坏':['老夫知道你有心事。说出来，比刷那些强。']}
+};
+const PROLOGUE_LINES = [
+  '你在一处旧物摊前停下脚步。','一枚灰扑扑的玉佩躺在角落，鬼使神差地，你把它拿了起来。',
+  '耳边忽然传来一声极轻的叹息。','"总算有人把老夫捡起来了。"','你四处张望，却不见人影。',
+  '"别看了，在玉佩里。"','……','沉默了很久，玉佩里才又传来一句：','"老夫叫云游子。你呢？"'
+];
+const TIAN_GAN = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const DI_ZHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+
+let player = {
+  name:'',sect:'',realm:'凡体',totalTime:0,
+  attributes:{悟性:60,自律:50,创造:55,心境:70},
+  gongfa:[],unyieldingTriggered:false,lastInterruptedDate:'',
+  root:null,daoTi:null,firstSeen:null,
+  phoneRecords:[],cutDemons:0
+};
+// ============ 计时核心修复 ============
+let timer = null;              // 唯一的显示刷新定时器
+let isTiming = false;          // 是否正在修炼
+let timingStartTime = null;    // 开始修炼的时间戳
+let timingGongfaIndex = null;  // 正在修炼的功法索引
+let currentIndex = null;       // 当前选中的功法（用于锁定屏等）
+let lockTimerId = null;
+let lockStartTime = null;
+let currentBgIndex = 0;
+let autoBgTimer = null;
+let noticeInterval = null;
+let pendingRoot = null;
+let pendingDaoTi = null;
+let daoTiQuestionIndex = 0;
+let daoTiScores = {金:0,木:0,水:0,火:0,土:0,阴:0,阳:0};
+let prologueIndex = 0;
+
+function getRandom(a){return a[Math.floor(Math.random()*a.length)]}
+function saveData(){localStorage.playerData=JSON.stringify(player)}
+function loadData(){const s=localStorage.getItem('playerData');if(s){try{player={...player,...JSON.parse(s)}}catch(e){}}}
+
+// ============ 古风时间 ============
+function getAncientDate(){const n=new Date();return `${TIAN_GAN[(n.getFullYear()-4)%10]}${DI_ZHI[(n.getFullYear()-4)%12]}年 ${n.getMonth()+1}月 ${n.getDate()}日`}
+function getAncientHour(){const n=new Date();return `${DI_ZHI[Math.floor(((n.getHours()+1)%24)/2)]}时${Math.floor(n.getMinutes()/15)===0?'正':Math.floor(n.getMinutes()/15)+'刻'}`}
+function updateAncientTime(){const t=getAncientDate()+' · '+getAncientHour();const e1=document.getElementById('ancientTimeSect'),e2=document.getElementById('ancientTimeHome');if(e1)e1.textContent=t;if(e2)e2.textContent=t}
+
+// ============ 告示 ============
+function startNoticeRotation(){if(noticeInterval)clearInterval(noticeInterval);updateNotice();noticeInterval=setInterval(updateNotice,10000)}
+function updateNotice(){const q=getRandom(XIU_LIAN_GAO_SHI);const e1=document.getElementById('noticeTextHome'),e2=document.getElementById('noticeTextSect');if(e1)e1.textContent='今日告示：'+q;if(e2)e2.textContent='今日告示：'+q}
+
+// ============ 开场 ============
+function startPrologue(){const o=document.getElementById('prologueOverlay');if(!o)return;if(player.name&&player.name!==''){o.classList.remove('active');return}o.classList.add('active');prologueIndex=0;showPrologueLine()}
+function showPrologueLine(){const t=document.getElementById('prologueText'),b=document.getElementById('prologueBtn');if(!t||!b)return;if(prologueIndex<PROLOGUE_LINES.length){t.textContent=PROLOGUE_LINES[prologueIndex];b.style.display='inline-block';b.textContent=prologueIndex<PROLOGUE_LINES.length-1?'继续':'告诉他你的名字'}else{finishPrologue()}}
+function nextPrologue(){prologueIndex++;if(prologueIndex<PROLOGUE_LINES.length){showPrologueLine()}else{finishPrologue()}}
+function finishPrologue(){const o=document.getElementById('prologueOverlay');if(o)o.classList.remove('active');const n=prompt('你沉默片刻，说：\n\n"我叫……"\n\n（请输入你的道号）','');if(n&&n.trim()){player.name=n.trim();saveData();alert('"'+player.name+'"……\n\n玉佩里传来一声轻笑。')}else{player.name='无名散修';saveData();alert('"不愿说也无妨。"')}renderHome()}
+
+// ============ 改名 ============
+function changeDaoName(){const n=document.getElementById('newDaoName').value.trim();if(!n){alert('请输入道号');return}player.name=n;saveData();document.getElementById('daoName').textContent=n;document.getElementById('daoNameTop').textContent=n;document.getElementById('newDaoName').value='';alert('道号已改为：'+n)}
+
+// ============ 亲密度 ============
+function getIntimacyLevel(){if(!player.firstSeen){player.firstSeen=new Date().toISOString();saveData()}const d=Math.floor((Date.now()-new Date(player.firstSeen).getTime())/(1000*60*60*24));return d<1?0:d<3?1:d<7?2:d<14?3:4}
+function getIntimacyText(){return['初识','相识','熟悉','亲近','至亲'][getIntimacyLevel()]}
+
+// ============ 老爷爷 ============
+function oldManSpeak(type){const l=getIntimacyLevel();const d=OLD_MAN_BY_INTIMACY[l]||OLD_MAN_BY_INTIMACY[4];return getRandom(d[type]||d['日常'])}
+function oldManSpeakRandom(){showHeartDemon('日常')}
+function showHeartDemon(type){const m=document.getElementById('heartDemonModal');if(!m)return;document.getElementById('hdText').textContent=oldManSpeak(type);document.getElementById('hdTitle').textContent='云游子 · '+getIntimacyText();document.getElementById('hdIcon').textContent='🧙';m.classList.add('active');updateOldmanPortrait()}
+function acceptHeartDemon(){document.getElementById('heartDemonModal').classList.remove('active')}
+function resistHeartDemon(){player.cutDemons=(player.cutDemons||0)+1;saveData();document.getElementById('hdText').textContent=oldManSpeak('斩却');document.getElementById('hdIcon').textContent='⚔️';setTimeout(()=>{document.getElementById('heartDemonModal').classList.remove('active')},2000)}
+
+// ============ 跨道鼓励 ============
+function showCrossDaoEncouragement(gongfa){
+  const mainDao=getMainDaoPath();const gDao=detectDaoPath(gongfa);
+  if(mainDao&&gDao&&mainDao!==gDao){
+    const l=getIntimacyLevel();const quotes=CROSS_DAO_QUOTES[l]||CROSS_DAO_QUOTES[4];
+    const quote=getRandom(quotes);
+    const m=document.getElementById('heartDemonModal');
+    if(m){document.getElementById('hdText').textContent=quote;document.getElementById('hdTitle').textContent='云游子 · '+getIntimacyText();document.getElementById('hdIcon').textContent='🧙';m.classList.add('active');updateOldmanPortrait()}
+  }
+}
+
+// ============ 天气 ============
+function getWeatherType(){const n=new Date(),m=n.getMonth()+1,h=n.getHours();if(m>=11||m<=2)return'天气冷';if(m>=6&&m<=8&&h>=10&&h<16)return'天气热';return'天气晴'}
+
+// ============ 手机记录 ============
+function openPhoneModal(){const m=document.getElementById('phoneModal');if(!m)return;m.classList.add('active');renderPhoneStats()}
+function closePhoneModal(){document.getElementById('phoneModal').classList.remove('active')}
+function submitPhoneTime(){const v=parseInt(document.getElementById('phoneInput').value);if(!v||v<0){alert('请输入有效分钟数');return}if(!player.phoneRecords)player.phoneRecords=[];player.phoneRecords.push({date:new Date().toDateString(),minutes:v});saveData();document.getElementById('phoneInput').value='';renderPhoneStats();const h=v/60;if(h<2){showHeartDemon('手机好')}else if(h>6){showHeartDemon('手机坏')}else{showHeartDemon('刷手机')}}
+function renderPhoneStats(){const box=document.getElementById('phoneStats'),adv=document.getElementById('phoneAdvice');if(!box||!adv)return;const today=new Date().toDateString();const todayRec=(player.phoneRecords||[]).filter(r=>r.date===today);const todayMin=todayRec.reduce((s,r)=>s+r.minutes,0);const todayH=(todayMin/60).toFixed(1);const totalRec=(player.phoneRecords||[]).length;box.innerHTML=`<div class="phone-stat"><div class="val">${todayH}h</div><div class="lbl">今日使用</div></div><div class="phone-stat"><div class="val">${totalRec}天</div><div class="lbl">记录天数</div></div>`;if(todayMin<120)adv.textContent='云游子："今日还算清醒。"';else if(todayMin>360)adv.textContent='云游子："今日心魔入体了。"';else adv.textContent='云游子："中间地带最危险。"'}
+
+// ============ 宗门 ============
+function renderSects(){const c=document.getElementById('sectContainer');if(!c)return;c.innerHTML='';SECTS.forEach(s=>{const d=document.createElement('div');d.className='sect-card';d.innerHTML=`<h2>${s.avatar} ${s.name}</h2><p>${s.desc}</p>`;d.onclick=()=>enterSect(s.name);c.appendChild(d)})}
+function enterSect(name){const s=SECTS.find(x=>x.name===name);if(!s)return;player.sect=name;Object.keys(s.attrBonus).forEach(k=>{player.attributes[k]=(player.attributes[k]||50)+s.attrBonus[k]});currentBgIndex=0;applyBg(s);saveData();showPage('homePage');renderHome();if(!player.daoTi){setTimeout(()=>startDaoTiTest(),800)}}
+function reselectSect(){if(!confirm('确定重新选择宗门？'))return;if(player.sect){const o=SECTS.find(s=>s.name===player.sect);if(o){Object.keys(o.attrBonus).forEach(k=>{player.attributes[k]=Math.max(30,(player.attributes[k]||50)-o.attrBonus[k])})}}player.sect='';saveData();renderSects();showPage('sectPage')}
+function resetAllData(){if(!confirm('⚠️ 确定重置所有数据？'))return;if(!confirm('再次确认？'))return;localStorage.removeItem('playerData');player={name:'',sect:'',realm:'凡体',totalTime:0,attributes:{悟性:60,自律:50,创造:55,心境:70},gongfa:[],unyieldingTriggered:false,lastInterruptedDate:'',root:null,daoTi:null,firstSeen:null,phoneRecords:[],cutDemons:0};currentIndex=null;isTiming=false;timingStartTime=null;timingGongfaIndex=null;if(timer){clearInterval(timer);timer=null}if(lockTimerId){clearInterval(lockTimerId);lockTimerId=null}if(autoBgTimer){clearInterval(autoBgTimer);autoBgTimer=null}document.getElementById('clock').innerHTML='00:00:00';document.getElementById('currentGongfa').textContent='无';document.getElementById('btnStart').style.display='inline-block';document.getElementById('btnStop').style.display='none';document.getElementById('timingStatus').textContent='未开始';renderHome();renderSects();showPage('sectPage');setTimeout(startPrologue,500)}
+
+// ============ 背景 ============
+function applyBg(s){document.getElementById('bgLayer').style.backgroundImage=`url("${s.bgs[currentBgIndex]}")`}
+function changeBg(){if(!player.sect)return;const s=SECTS.find(x=>x.name===player.sect);if(!s)return;currentBgIndex=(currentBgIndex+1)%s.bgs.length;applyBg(s)}
+function toggleAutoBg(){if(autoBgTimer){clearInterval(autoBgTimer);autoBgTimer=null;alert('已关闭自动换景')}else{autoBgTimer=setInterval(()=>changeBg(),15000);alert('已开启自动换景')}}
+
+// ============ 页面 ============
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='libraryPage')renderLibrary();if(id==='achievementPage')renderAchievements()}
+function switchTab(id,btn){showPage(id);if(btn){const p=btn.parentElement;p.querySelectorAll('button').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}}
+
+// ============ 道体测试 ============
+function startDaoTiTest(){daoTiQuestionIndex=0;daoTiScores={金:0,木:0,水:0,火:0,土:0,阴:0,阳:0};document.getElementById('daotiOverlay').classList.add('active');document.getElementById('daotiResultBox').style.display='none';document.getElementById('daotiActionBtns').style.display='none';showDaoTiQuestion()}
+function showDaoTiQuestion(){if(daoTiQuestionIndex>=DAO_TI_QUESTIONS.length){finishDaoTiTest();return}const q=DAO_TI_QUESTIONS[daoTiQuestionIndex];document.getElementById('daotiQuestionTitle').textContent=`第 ${daoTiQuestionIndex+1} 题 / 共 ${DAO_TI_QUESTIONS.length} 题`;document.getElementById('daotiQuestionText').textContent=q.q;const box=document.getElementById('daotiOptions');box.innerHTML='';q.options.forEach(o=>{const b=document.createElement('button');b.textContent=o.text;b.onclick=()=>{Object.keys(o.scores).forEach(k=>{daoTiScores[k]+=o.scores[k]});daoTiQuestionIndex++;showDaoTiQuestion()};box.appendChild(b)})}
+function determineDaoTi(){const s=daoTiScores;const total=Object.values(s).reduce((a,b)=>a+b,0);const sorted=Object.entries(s).sort((a,b)=>b[1]-a[1]);const top=sorted.slice(0,3).map(x=>x[0]);if(s['阴']+s['阳']>total*0.65){if(s['阴']>s['阳']*2)return'纯阴体';if(s['阳']>s['阴']*2)return'纯阳体';if(Math.abs(s['阴']-s['阳'])<=total*0.1)return'阴阳体'}const wx=['金','木','水','火','土'].reduce((o,k)=>{o[k]=s[k];return o},{});const wxTotal=Object.values(wx).reduce((a,b)=>a+b,0);const wxAvg=wxTotal/5;if(Object.values(wx).every(v=>Math.abs(v-wxAvg)<wxAvg*0.35)){if(wxTotal>total*0.5)return'五行体';if(s['阴']+s['水']>total*0.45)return'太虚体';if(wxTotal<total*0.35)return'混沌体';return'无极体'}if(top.includes('火')&&top.includes('金')&&s['阳']>s['阴'])return'雷灵体';if(top.includes('木')&&top.includes('水')&&s['阳']>s['阴'])return'风灵体';if(top.includes('水')&&top.includes('金')&&s['阴']>s['阳'])return'冰灵体';if(top.includes('火')&&top.includes('土')&&s['阳']>s['阴'])return'血灵体';if(top.includes('金')&&top.includes('土')&&s['阳']>s['阴'])return'骨灵体';if(top.includes('水')&&top.includes('木')&&s['阴']>s['阳'])return'影灵体';if(top.includes('火')&&top.includes('金')&&s['阳']>s['阴']*2)return'光灵体';if(top.includes('木')&&top.includes('火')&&s['阳']>s['阴'])return'毒灵体';if(top.includes('金')&&top.includes('水')&&s['阳']>s['阴']*1.2)return'星辰体';if(top.includes('土')&&top.includes('水')&&s['阴']>s['阳']*1.2)return'轮回体';if(top.includes('火')&&top.includes('木')&&s['阳']>s['阴']*1.5)return'命运体';const mk=sorted[0][0];if(sorted[0][1]>total*0.3&&['金','木','水','火','土'].includes(mk)){return{'金':'精金体','木':'青木体','水':'玄水体','火':'离火体','土':'厚土体'}[mk]}if(s['金']>s['木']*1.5&&s['阳']>s['阴']&&s['火']<total*0.15)return'剑心体';if(s['木']>s['金']*1.5&&s['阴']>s['阳']&&s['水']>total*0.2)return'烛照体';if(s['土']>s['水']*1.5&&s['阴']>s['阳']&&s['金']>total*0.15)return'磐石体';const fb=sorted.find(x=>['金','木','水','火','土'].includes(x[0]));return fb?{'金':'精金体','木':'青木体','水':'玄水体','火':'离火体','土':'厚土体'}[fb[0]]:'混沌体'}
+function finishDaoTiTest(){const dt=determineDaoTi();const def=DAO_TI_DEFINITIONS[dt];if(!def)return;pendingDaoTi=dt;document.getElementById('daotiQuestionTitle').textContent='心相篇 · 测定完成';document.getElementById('daotiQuestionText').textContent='';document.getElementById('daotiOptions').innerHTML='';const rb=document.getElementById('daotiResultBox');rb.style.display='block';rb.innerHTML=`<div style="font-size:28px;color:var(--gold);letter-spacing:4px;margin-bottom:8px;">${dt}</div><div style="font-size:11px;color:var(--muted);line-height:1.8;">${def.desc}</div><div style="font-size:11px;color:var(--muted);line-height:1.6;margin-top:8px;"><strong style="color:var(--gold-light);">天赋：</strong>${def.strength}<br><strong style="color:var(--gold-light);">心魔：</strong>${def.weakness}<br><strong style="color:var(--gold-light);">云游子说：</strong>${def.advice}<br><strong style="color:var(--gold-light);">适合领域：</strong>${def.best.join('、')}</div>`;document.getElementById('daotiActionBtns').style.display='flex'}
+function confirmDaoTi(){if(!pendingDaoTi)return;player.daoTi=pendingDaoTi;saveData();document.getElementById('daotiOverlay').classList.remove('active');renderHome();alert('🧬 道体测定完成！\n\n你的道体：'+pendingDaoTi)}
+
+// ============ 灵根 ============
+function showTalentSelect(){pendingRoot=player.root||null;document.getElementById('talentOverlay').classList.add('active');updateTalentButtons();updateTalentResult()}
+function closeTalent(){document.getElementById('talentOverlay').classList.remove('active')}
+function selectRoot(id){pendingRoot=id;updateTalentButtons();updateTalentResult()}
+function updateTalentButtons(){document.querySelectorAll('#rootOptions button').forEach(b=>{b.classList.remove('selected');if(pendingRoot&&b.textContent.includes(ROOT_CONFIG[pendingRoot].label))b.classList.add('selected')})}
+function updateTalentResult(){const rd=document.getElementById('talentResult'),cb=document.getElementById('confirmTalentBtn');if(pendingRoot&&ROOT_CONFIG[pendingRoot]){const c=ROOT_CONFIG[pendingRoot];document.getElementById('resultRoot').textContent=c.label;document.getElementById('resultEval').textContent=`修炼加成：${Math.round(c.bonus*100)}%`;rd.style.display='block';cb.style.display='inline-block'}else{rd.style.display='none';cb.style.display='none'}}
+function confirmTalent(){if(!pendingRoot)return;player.root=pendingRoot;saveData();closeTalent();renderHome();alert('📜 灵根评定完成！')}
+
+// ============ 道途 ============
+function detectDaoPath(g){const text=(g.name+' '+g.category).toLowerCase();for(const[p,c]of Object.entries(DAO_PATHS)){if(c.keywords.some(k=>text.includes(k.toLowerCase())))return p}return null}
+function getMainDaoPath(){if(player.gongfa.length===0)return null;return detectDaoPath(player.gongfa[0])}
+function getLearnedDaoPaths(){const s=new Set();player.gongfa.forEach(g=>{const p=detectDaoPath(g);if(p)s.add(p)});return s}
+
+// ============ 功法 ============
+function showCreateForm(){document.getElementById('createForm').style.display='block'}
+function hideCreateForm(){document.getElementById('createForm').style.display='none';document.getElementById('newGongfaName').value='';document.getElementById('newGongfaCategory').value=''}
+function createGongfa(){const n=document.getElementById('newGongfaName').value.trim();const c=document.getElementById('newGongfaCategory').value.trim();if(!n){alert('请输入功法名称');return}const r=document.getElementById('newGongfaRank').value;const p=detectDaoPath({name:n,category:c});player.gongfa.push({name:n,category:c||'未分类',rank:r,rankLabel:RANK_CONFIG[r].label,time:0,daoPath:p});saveData();hideCreateForm();renderGongfa();renderHome();alert(`成功创建：《${n}》`)}
+function getRealmIndex(g){const t=RANK_CONFIG[g.rank].thresholds;if(g.time<t[0])return 0;if(g.time<t[1])return 1;if(g.time<t[2])return 2;if(g.time<t[3])return 3;if(g.time<t[4])return 4;if(g.time<t[5])return 5;return 6}
+function getProgress(g){const t=RANK_CONFIG[g.rank].thresholds;const i=getRealmIndex(g);if(i===6)return 100;const cur=i===0?0:t[i-1];return Math.min(100,Math.max(0,(g.time-cur)/(t[i]-cur)*100))}
+function getEfficiencyBreakdown(g){const dt=player.daoTi?DAO_TI_DEFINITIONS[player.daoTi]:null;let dtEff=1.0;if(dt){const text=(g.name+' '+g.category).toLowerCase();if(dt.best.some(k=>text.includes(k.toLowerCase())))dtEff=dt.bonus}const mainDao=getMainDaoPath();const gDao=detectDaoPath(g);let daoEff=1.0;if(mainDao&&gDao){if(gDao===mainDao)daoEff=1.3;else if(getRealmIndex(g)===0)daoEff=0.8}const daoCount=getLearnedDaoPaths().size;const broadBonus=daoCount>=3?(daoCount-2)*0.05:0;const nb=[0,0.05,0.10,0.25,0.50,0.80,1.00][getRealmIndex(g)];const rb=player.root?ROOT_CONFIG[player.root].bonus:1.0;const total=dtEff*daoEff*(1+nb+broadBonus)*rb;return{daoTi:dtEff,dao:daoEff,neuro:1+nb+broadBonus,root:rb,total}}
+function countGongfaByRealm(r){return player.gongfa.filter(g=>getRealmIndex(g)>=r).length}
+function getCurrentXiusiRealm(){let c=XIUSHI_REALMS[0];for(let i=0;i<XIUSHI_REALMS.length;i++){if(XIUSHI_REALMS[i].check())c=XIUSHI_REALMS[i];else break}return c}
+function getRealmProgressText(){const c=getCurrentXiusiRealm();const i=XIUSHI_REALMS.findIndex(r=>r.name===c.name);if(i>=XIUSHI_REALMS.length-1)return'已至此界巅峰';const n=XIUSHI_REALMS[i+1];const nameMap={1:'入门',2:'小成',3:'精通',4:'大成'};let parts=[];if(n.name.includes('炼气')){const layer=parseInt(n.name.replace('炼气',''));const rn=layer<=3?1:layer<=6?2:3;const cn=layer<=3?layer:layer<=6?layer-3:layer-6;parts.push(`${nameMap[rn]} ${countGongfaByRealm(rn)}/${cn}`)}else{const m=n.check.toString().match(/\d+/g);if(m&&m.length>0)parts.push(`总修炼 ${player.totalTime.toFixed(0)}/${m[0]} 小时`)}return parts.length?`距${n.name}还需：${parts.join('，')}`:''}
+function checkXiusiBreakthrough(){const c=getCurrentXiusiRealm();if(player.realm!==c.name){const old=player.realm;player.realm=c.name;saveData();renderHome();alert(`🌟 修士境界突破！\n\n${old} → ${c.name}\n\n${c.desc}`)}}
+
+// ============ 计时（时间戳版，息屏也走） ============
+function getElapsedSeconds(){
+  if(!isTiming || !timingStartTime) return 0;
+  return Math.floor((Date.now() - timingStartTime) / 1000);
+}
+
+function updateClockDisplay(){
+  const elapsed = getElapsedSeconds();
+  const h=String(Math.floor(elapsed/3600)).padStart(2,'0');
+  const m=String(Math.floor((elapsed%3600)/60)).padStart(2,'0');
+  const s=String(elapsed%60).padStart(2,'0');
+  document.getElementById('clock').innerHTML=`${h}:${m}:${s}`;
+  
+  // 锁屏同步
+  if(document.getElementById('lockOverlay').classList.contains('active')){
+    document.getElementById('lockTimer').innerHTML=`${h}:${m}:${s}`;
+  }
+  
+  // 状态文字
+  const statusEl=document.getElementById('timingStatus');
+  if(statusEl){
+    const mins=Math.floor(elapsed/60);
+    if(mins<30)statusEl.textContent='修炼中 · 气机初动';
+    else if(mins<60)statusEl.textContent='修炼中 · 渐入佳境';
+    else if(mins<120)statusEl.textContent='修炼中 · 心无旁骛';
+    else statusEl.textContent='修炼中 · 已入定境';
+  }
+  
+  // 过度提醒
+  if(elapsed===7200){
+    showHeartDemon('过度');
+  }
+}
+
+function startCultivation(){
+  if(currentIndex===null){alert('请先选择功法');return}
+  if(isTiming)return;
+  
+  const today=new Date().toDateString();
+  if(player.lastInterruptedDate===today&&!player.unyieldingTriggered){
+    player.unyieldingTriggered=true;saveData();showHeartDemon('中断回归');
+  }
+  
+  // 跨道修炼检测
+  const g=player.gongfa[currentIndex];
+  const mainDao=getMainDaoPath();const gDao=detectDaoPath(g);
+  if(mainDao&&gDao&&mainDao!==gDao&&getRealmIndex(g)===0){
+    setTimeout(()=>showCrossDaoEncouragement(g),500);
+  }
+  
+  // 深夜/天气提醒
+  const h=new Date().getHours();
+  if(h>=23||h<5){showHeartDemon('深夜')}
+  else if(Math.random()<0.3){showHeartDemon(getWeatherType())}
+  
+  // 记录开始时间戳
+  isTiming=true;
+  timingStartTime=Date.now();
+  timingGongfaIndex=currentIndex;
+  
+  // 更新按钮
+  document.getElementById('btnStart').style.display='none';
+  document.getElementById('btnStop').style.display='inline-block';
+  
+  // 启动显示刷新（仅刷新显示，时间由时间戳计算）
+  if(timer)clearInterval(timer);
+  timer=setInterval(updateClockDisplay,1000);
+  updateClockDisplay();
+  saveData();
+}
+
+function stopCultivation(){
+  if(!isTiming)return;
+  
+  const elapsed=getElapsedSeconds();
+  const g=player.gongfa[timingGongfaIndex];
+  if(g){
+    const bd=getEfficiencyBreakdown(g);
+    const rawH=elapsed/3600;
+    const effH=rawH*bd.total;
+    const oldR=getRealmIndex(g);
+    g.time+=effH;player.totalTime+=effH;
+    const newR=getRealmIndex(g);
+    let msg='';
+    if(newR>oldR)msg=`🎉 功法突破！【${g.name}】晋升至「${REALM_NAMES[newR]}」！\n\n`;
+    msg+=`修炼时长：${rawH.toFixed(2)} 小时\n有效时长：${effH.toFixed(2)} 小时`;
+    alert(msg);
+    player.lastInterruptedDate=new Date().toDateString();
+    saveData();checkXiusiBreakthrough();
+    if(Math.random()<0.4)setTimeout(()=>showHeartDemon('日常'),800);
+  }
+  
+  // 停止
+  isTiming=false;
+  timingStartTime=null;
+  timingGongfaIndex=null;
+  if(timer){clearInterval(timer);timer=null}
+  
+  document.getElementById('btnStart').style.display='inline-block';
+  document.getElementById('btnStop').style.display='none';
+  document.getElementById('clock').innerHTML='00:00:00';
+  document.getElementById('timingStatus').textContent='未开始';
+  renderHome();
+}
+
+// ============ 锁屏（全屏显示，但时间仍由时间戳计算） ============
+function enterLockMode(){
+  if(!isTiming){alert('请先开始修炼');return}
+  const g=player.gongfa[timingGongfaIndex];
+  if(!g)return;
+  document.getElementById('lockName').textContent=g.name;
+  document.getElementById('lockRank').textContent=`${g.rankLabel} · ${REALM_NAMES[getRealmIndex(g)]}`;
+  document.getElementById('lockVerse').textContent=getRandom(XIU_LIAN_GAO_SHI);
+  document.getElementById('lockOverlay').classList.add('active');
+  updateClockDisplay();
+}
+function exitLockMode(){
+  document.getElementById('lockOverlay').classList.remove('active');
+  // 不停止计时，只关闭锁屏画面
+  updateClockDisplay();
+}
+
+// ============ 立绘 ============
+function updatePortraits(){
+  const realm=player.realm;
+  let level=0;
+  if(realm.includes('化神'))level=4;
+  else if(realm.includes('元婴'))level=4;
+  else if(realm.includes('金丹'))level=3;
+  else if(realm.includes('筑基'))level=2;
+  else if(realm.includes('炼气'))level=1;
+  const ci=document.getElementById('cultivatorImg');
+  if(ci)ci.src=`cultivator-${level}.png`;
+  const oi=document.getElementById('oldmanImg');
+  if(oi)oi.src=`oldman-${getIntimacyLevel()}.png`;
+}
+function updateOldmanPortrait(){const oi=document.getElementById('oldmanImg');if(oi)oi.src=`oldman-${getIntimacyLevel()}.png`;}
+
+// ============ 渲染 ============
+function renderGongfa(){const box=document.getElementById('gongfaContainer');if(!box)return;box.innerHTML='';if(player.gongfa.length===0){box.innerHTML='<div style="text-align:center;color:var(--muted);padding:25px;font-size:12px;">洞府空无一物，创建功法开始修炼吧。</div>';return}const mainDao=getMainDaoPath();player.gongfa.forEach((g,i)=>{const rn=REALM_NAMES[getRealmIndex(g)];const prog=getProgress(g);const bd=getEfficiencyBreakdown(g);const gDao=detectDaoPath(g);const daoDisplay=gDao?`${gDao}${gDao===mainDao?'（主修）':''}`:'未知道';const isThisTiming=isTiming&&timingGongfaIndex===i;const d=document.createElement('div');d.className=`gongfa-item ${g.rank}`;d.innerHTML=`<img src="gongfa-default.png" class="gongfa-thumb" onerror="this.style.display='none'"><h3>📖 ${g.name}<span class="rank-tag ${g.rank}">${g.rankLabel}</span>${isThisTiming?'<span style="color:#7ac8a8;font-size:10px;margin-left:5px;">⏳ 修炼中</span>':''}</h3><div class="info">道途：${daoDisplay} ｜ ${g.category} ｜ ${rn} ｜ ${g.time.toFixed(2)}h</div><div class="info" style="color:${bd.daoTi>1?'var(--gold-light)':bd.dao<1?'var(--danger)':'var(--muted)'};">效率 ×${bd.total.toFixed(2)}</div><div class="progress-bar"><div class="progress-fill ${g.rank}" style="width:${prog}%"></div></div><div class="actions"><button onclick="selectGongfa(${i})">${isThisTiming?'修炼中':'选择'}</button><button onclick="deleteGongfa(${i})" style="color:var(--danger);">删除</button></div>`;box.appendChild(d)})}
+function selectGongfa(i){currentIndex=i;document.getElementById('currentGongfa').textContent=player.gongfa[i].name;alert(`已选择功法：《${player.gongfa[i].name}》\n点击「▶ 开始」即可修炼`)}
+function deleteGongfa(i){if(!confirm('确定删除？'))return;if(isTiming&&timingGongfaIndex===i){alert('该功法正在修炼中，请先结束修炼');return}player.gongfa.splice(i,1);if(currentIndex===i)currentIndex=null;if(currentIndex>i)currentIndex--;if(currentIndex===null)document.getElementById('currentGongfa').textContent='无';saveData();renderGongfa();renderLibrary();renderHome()}
+function renderLibrary(){const box=document.getElementById('libraryList');if(!box)return;box.innerHTML='';if(player.gongfa.length===0){box.innerHTML='<div style="text-align:center;color:var(--muted);padding:25px;">暂无功法</div>';return}player.gongfa.forEach(g=>{const d=document.createElement('div');d.className=`gongfa-item ${g.rank}`;d.innerHTML=`<h3>📖 ${g.name}<span class="rank-tag ${g.rank}">${g.rankLabel}</span></h3><div class="info">${detectDaoPath(g)||'未知'} ｜ ${g.category} ｜ ${REALM_NAMES[getRealmIndex(g)]} ｜ ${g.time.toFixed(2)}h</div>`;box.appendChild(d)})}
+function renderAchievements(){const grid=document.getElementById('achievementGrid');if(!grid)return;grid.innerHTML='';ACHIEVEMENTS.forEach(a=>{let unlocked=false;switch(a.id){case'first-gongfa':unlocked=player.gongfa.length>=1;break;case'first-hour':unlocked=player.totalTime>=1;break;case'ten-hours':unlocked=player.totalTime>=10;break;case'fifty-hours':unlocked=player.totalTime>=50;break;case'hundred-hours':unlocked=player.totalTime>=100;break;case'five-hundred':unlocked=player.totalTime>=500;break;case'thousand-hours':unlocked=player.totalTime>=1000;break;case'first-realm':unlocked=player.gongfa.some(g=>getRealmIndex(g)>=1);break;case'second-realm':unlocked=player.gongfa.some(g=>getRealmIndex(g)>=3);break;case'third-realm':unlocked=player.gongfa.some(g=>getRealmIndex(g)>=4);break;case'mastery':unlocked=player.gongfa.some(g=>getRealmIndex(g)>=5);break;case'transcend':unlocked=player.gongfa.some(g=>getRealmIndex(g)>=6);break;case'three-gongfa':unlocked=player.gongfa.length>=3;break;case'five-gongfa':unlocked=player.gongfa.length>=5;break;case'ten-gongfa':unlocked=player.gongfa.length>=10;break;case'first-ling':unlocked=player.gongfa.some(g=>['ling','di','tian','xian','shen'].includes(g.rank));break;case'first-tian':unlocked=player.gongfa.some(g=>['tian','xian','shen'].includes(g.rank));break;case'first-xian':unlocked=player.gongfa.some(g=>['xian','shen'].includes(g.rank));break;case'unyielding':unlocked=player.unyieldingTriggered;break;case'daoTi-tested':unlocked=!!player.daoTi;break;case'root-tested':unlocked=!!player.root;break;case'first-sect':unlocked=!!player.sect;break;case'realm-lianqi':unlocked=player.realm.includes('炼气');break;case'realm-zhuji':unlocked=player.realm.includes('筑基');break;case'realm-jindan':unlocked=player.realm.includes('金丹');break;case'realm-yuanying':unlocked=player.realm.includes('元婴');break;case'realm-huashen':unlocked=player.realm.includes('化神');break;case'phone-first':unlocked=(player.phoneRecords||[]).length>=1;break;case'phone-good':unlocked=(player.phoneRecords||[]).some(r=>r.minutes<120);break;case'phone-bad':unlocked=(player.phoneRecords||[]).some(r=>r.minutes>360);break;case'phone-seven':unlocked=(player.phoneRecords||[]).length>=7;break;case'oldman-friend':unlocked=getIntimacyLevel()>=4;break;case'cut-heart-demon':unlocked=(player.cutDemons||0)>=1;break;case'cut-ten-demons':unlocked=(player.cutDemons||0)>=10;break;case'early-bird':unlocked=player.totalTime>0&&new Date().getHours()>=5&&new Date().getHours()<7;break;case'night-owl':unlocked=player.totalTime>0&&(new Date().getHours()>=23||new Date().getHours()<5);break;case'thrifty':unlocked=(player.phoneRecords||[]).some(r=>r.minutes<player.totalTime*60);break;case'cross-dao':unlocked=(()=>{const m=getMainDaoPath();return m&&player.gongfa.some(g=>{const p=detectDaoPath(g);return p&&p!==m})})();break;case'three-dao':unlocked=getLearnedDaoPaths().size>=3;break;case'five-dao':unlocked=getLearnedDaoPaths().size>=5;break;}const c=document.createElement('div');c.className=`achievement-card ${unlocked?'unlocked':'locked'}`;c.innerHTML=`<span class="achievement-icon">${a.icon}</span><div class="achievement-name">${a.name}</div><div class="achievement-desc">${a.desc}</div>`;grid.appendChild(c)})}
+function renderHome(){document.getElementById('daoName').textContent=player.name||'无名散修';document.getElementById('daoNameTop').textContent=player.name||'无名散修';document.getElementById('daoSect').textContent=player.sect||'---';document.getElementById('daoRealm').textContent=player.realm;document.getElementById('daoRealmTop').textContent=player.realm;document.getElementById('totalHour').textContent=player.totalTime.toFixed(1);document.getElementById('sectTitle').textContent=player.sect||'未入宗门';document.getElementById('intimacyDisplay').textContent=getIntimacyText();document.getElementById('realmProgress').textContent=getRealmProgressText();document.getElementById('daoBody').textContent=player.daoTi||'未测定';document.getElementById('daoRoot').textContent=player.root?ROOT_CONFIG[player.root].label:'未评定';const mainDao=getMainDaoPath();document.getElementById('mainDaoDisplay').textContent=mainDao||'未定';document.getElementById('efficiencyDisplay').textContent=player.daoTi?Math.round(DAO_TI_DEFINITIONS[player.daoTi].bonus*100)+'%':'100%';renderGongfa();updatePortraits();if(isTiming){updateClockDisplay()}}
+
+// ============ 初始化 ============
+loadData();renderSects();renderHome();startNoticeRotation();updateAncientTime();
+setInterval(updateAncientTime,30000);setInterval(saveData,30000);
+window.addEventListener('beforeunload',saveData);
+if(player.sect){const s=SECTS.find(x=>x.name===player.sect);if(s)applyBg(s);showPage('homePage')}else{showPage('sectPage')}
+if(!player.name||player.name===''){setTimeout(startPrologue,800)}else{document.getElementById('prologueOverlay').classList.remove('active')}
+</script>
+</body>
+</html>
